@@ -160,7 +160,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		} else if (declaration.getType().equals(Type.BOOLEAN)) {
 			declaration.SetJVMType("Z");
 			System.out.println("declaration Z");
-			// mv.visitInsn(num);
 			if (declaration.expression != null) {
 				declaration.expression.visit(this, arg);
 				mv.visitVarInsn(ISTORE, declaration.slot_number);
@@ -169,7 +168,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		} else if (declaration.getType().equals(Type.CHAR)) {
 			declaration.SetJVMType("C");
 			System.out.println("declaration C");
-			// mv.visitInsn(num);
 			if (declaration.expression != null) {
 				declaration.expression.visit(this, arg);
 				mv.visitVarInsn(ISTORE, declaration.slot_number);
@@ -178,7 +176,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		} else if (declaration.getType().equals(Type.STRING)) {
 			declaration.SetJVMType("LJava/lang/String");
 			System.out.println("declaration string");
-			// mv.visitInsn(num);
 			if (declaration.expression != null) {
 				declaration.expression.visit(this, arg);
 				mv.visitVarInsn(ASTORE, declaration.slot_number);
@@ -198,23 +195,16 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 
 		if (declaration.getType().equals(Type.INTEGER)) {
 			declaration.SetJVMType("I");
-			// mv.visitVarInsn(ISTORE, declaration.slot_number);
 		} else if (declaration.getType().equals(Type.FLOAT)) {
 			declaration.SetJVMType("F");
-			// mv.visitVarInsn(FSTORE, declaration.slot_number);
 		} else if (declaration.getType().equals(Type.BOOLEAN)) {
 			declaration.SetJVMType("Z");
-			// mv.visitVarInsn(ISTORE, declaration.slot_number);
 		} else if (declaration.getType().equals(Type.CHAR)) {
 			declaration.SetJVMType("C");
-			// mv.visitVarInsn(ISTORE, declaration.slot_number);
 		} else if (declaration.getType().equals(Type.STRING)) {
 			declaration.SetJVMType("LJava/lang/String");
-			// mv.visitVarInsn(ASTORE, declaration.slot_number);
 		}
-		// else {
-		// throw new Exception();
-		// }
+
 		return null;
 	}
 
@@ -233,17 +223,14 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			case OP_PLUS: {
 				mv.visitInsn(IADD);
 				return Type.INTEGER;
-				// break;
 			}
 			case OP_MINUS: {
 				mv.visitInsn(ISUB);
 				return Type.INTEGER;
-				// break;
 			}
 			case OP_TIMES: {
 				mv.visitInsn(IMUL);
 				return Type.INTEGER;
-				// break;
 			}
 			case OP_DIV: {
 				mv.visitInsn(IDIV);
@@ -303,11 +290,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			switch (expressionBinary.op) {
 
 			case OP_PLUS: {
-				// mv.visitInsn(F2D);
-				// mv.visitVarInsn(FLOAD, 1);
-				// mv.visitVarInsn(FLOAD, 2);
 				mv.visitInsn(FADD);
-				// mv.visitInsn(D2F);
 				return Type.FLOAT;
 			}
 			case OP_MINUS: {
@@ -330,13 +313,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 
 				mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Math", "pow", "(DD)D", false);
 				mv.visitInsn(D2F);
-				// mv.visitVarInsn(FLOAD, 1);
-				// mv.visitInsn(F2D);
-				// mv.visitVarInsn(FLOAD, 1);
-				// mv.visitInsn(F2D);
-				// mv.visitMethodInsn(INVOKESTATIC, "java/lang/Math", "pow", "(DD)D", false);
-				// mv.visitInsn(D2F);
-				//// mv.visitVarInsn(FSTORE, 7);
 				return Type.FLOAT;
 			}
 			case OP_NEQ:
@@ -607,7 +583,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 	@Override
 	public Object visitExpressionIntegerLiteral(ExpressionIntegerLiteral expressionIntegerLiteral, Object arg)
 			throws Exception {
-		// if(intoLHS) mv.visitIntInsn(BIPUSH, expressionIntegerLiteral.value);
 		mv.visitLdcInsn(expressionIntegerLiteral.value);
 		System.out.println("IntegerLiteral");
 		return Type.INTEGER;
@@ -697,7 +672,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		// TODO Auto-generated method stub
 		PLPTypes type = new PLPTypes();
 		Type t = null;
-		// t = lhs.dec.getType();
 		System.out.println("LHS:f");
 		intoLHS = true;
 
@@ -746,13 +720,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		mv.visitLabel(afterIf); // added (if want to get back, delete this line and uncomment this other
 								// commented line)
 
-		// mv.visitLabel(startIf);
-		//
-		// Label endIf = new Label();
-		// mv.visitLabel(endIf);
-		// mv.visitLabel(afterIf); //AFTER
-		// Label endAfterIf = new Label();
-		// mv.visitLabel(endAfterIf);
 
 		return null;
 	}
@@ -784,11 +751,8 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		 * In all cases, invoke CodeGenUtils.genLogTOS(GRADE, mv, type); before
 		 * consuming top of stack.
 		 */
-		// printStatement.expression.visit(this, arg);
-		// Type type = printStatement.expression.getType();
 
 		Type type = (Type) printStatement.expression.visit(this, arg);
-		// type = Type.INTEGER;
 
 		switch (type) {
 		case INTEGER: {
@@ -806,7 +770,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			// TODO implement functionality
 			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 			mv.visitInsn(Opcodes.SWAP);
-			// printStatement.expression.visit(this, arg);
 			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Z)V", false);
 			// throw new UnsupportedOperationException();
 		}
@@ -818,7 +781,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			// TODO implement functionality
 			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 			mv.visitInsn(Opcodes.SWAP);
-			// printStatement.expression.visit(this, arg);
 			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(F)V", false);
 			// throw new UnsupportedOperationException();
 		}
@@ -830,7 +792,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			// TODO implement functionality
 			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 			mv.visitInsn(Opcodes.SWAP);
-			// printStatement.expression.visit(this, arg);
 			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(C)V", false);
 			// throw new UnsupportedOperationException();
 		}
@@ -841,7 +802,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
 			// TODO implement functionality
 			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			// mv.visitLdcInsn(Opcodes.SWAP);
 			printStatement.expression.visit(this, arg);
 			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
 			// throw new UnsupportedOperationException();

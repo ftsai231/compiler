@@ -79,7 +79,6 @@ public class PLPTypeChecker implements PLPASTVisitor {
 		
 		if((type==type2||type==null) && symboltable.insert(declaration.name, (Declaration) declaration)) {
 			
-			//declaration.visit(this, arg);
 		}
 		else {
 			throw new SemanticException(declaration.firstToken, "error in declaration");
@@ -87,7 +86,6 @@ public class PLPTypeChecker implements PLPASTVisitor {
 		
 		return null;
 		
-		//throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -95,7 +93,6 @@ public class PLPTypeChecker implements PLPASTVisitor {
 		// TODO Auto-generated method stub
 		for(int i=0;i<declaration.names.size();i++) {
 			if(symboltable.insert(declaration.names.get(i), (Declaration) declaration)) {
-				//declaration.visit(this, arg);
 				
 			}
 			else {
@@ -110,7 +107,7 @@ public class PLPTypeChecker implements PLPASTVisitor {
 	@Override
 	public Object visitExpressionBooleanLiteral(ExpressionBooleanLiteral expressionBooleanLiteral, Object arg) throws Exception {
 		// TODO Auto-generated method stub
-		//throw new UnsupportedOperationException();
+
 		return PLPTypes.Type.BOOLEAN;
 	}
 
@@ -221,7 +218,6 @@ public class PLPTypeChecker implements PLPASTVisitor {
 	@Override
 	public Object visitExpressionIdent(ExpressionIdentifier expressionIdent, Object arg) throws Exception {
 		// TODO Auto-generated method stub
-		//PLPTypes type = new PLPTypes();
 		if(symboltable.lookup(expressionIdent.name)!=null) {
 			if(symboltable.lookup(expressionIdent.name) instanceof VariableDeclaration) {
 				expressionIdent.dec = (VariableDeclaration) symboltable.lookup(expressionIdent.name);
@@ -344,7 +340,6 @@ public class PLPTypeChecker implements PLPASTVisitor {
 		// TODO Auto-generated method stub
 		
 		if(symboltable.lookup(lhs.identifier)!=null) {
-			//lhs.visit(this, arg);
 			if(symboltable.lookup(lhs.identifier) instanceof VariableDeclaration) {
 				lhs.dec = (VariableDeclaration) symboltable.lookup(lhs.identifier);			//is a declaration
 				return PLPTypes.getType(lhs.dec.type);
