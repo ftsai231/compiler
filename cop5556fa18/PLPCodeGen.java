@@ -26,15 +26,12 @@ import cop5556fa18.PLPAST.WhileStatement;
 import cop5556fa18.PLPScanner.Kind;
 import cop5556fa18.PLPTypes.Type;
 
-import jdk.internal.org.objectweb.asm.ClassWriter;
-import jdk.internal.org.objectweb.asm.Label;
-import jdk.internal.org.objectweb.asm.MethodVisitor;
-import jdk.internal.org.objectweb.asm.Opcodes;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.objectweb.asm.*;
+//import org.objectweb.asm.*;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;;
 
 public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 
@@ -43,17 +40,15 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 	String classDesc;
 	String sourceFileName;
 
-	boolean intoLHS = false;
 
-	int current_slot = 0;
-	List<Declaration> decList = new ArrayList<>();
+	public int current_slot = 0;
 
 	MethodVisitor mv; // visitor of method currently under construction
 
 	/** Indicates whether genPrint and genPrintTOS should generate code. */
 	final boolean DEVEL;
 	final boolean GRADE;
-
+	
 	public PLPCodeGen(String sourceFileName, boolean dEVEL, boolean gRADE) {
 		super();
 		this.sourceFileName = sourceFileName;
@@ -64,9 +59,89 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 	@Override
 	public Object visitBlock(Block block, Object arg) throws Exception {
 		// TODO refactor and extend as necessary
+		Label startLabel = new Label();
+		Label endLabel = new Label();
+		for (PLPASTNode node : block.declarationsAndStatements) {
+			if (node.getClass() == VariableDeclaration.class) {
+				VariableDeclaration dec = (VariableDeclaration) node;
+				dec.setSlot(current_slot);
+				current_slot++;
+			}
+			else if (node.getClass() == VariableListDeclaration.class) {
+				VariableListDeclaration decc = (VariableListDeclaration) node;
+				for (String name : decc.names) {
+					decc.setSlot(name, current_slot);
+					current_slot++;
+				}
+			}
+		}
+		
+		mv.visitLabel(startLabel);
 		for (PLPASTNode node : block.declarationsAndStatements) {
 			node.visit(this, null);
 		}
+		mv.visitLabel(endLabel);
+		
+		for (PLPASTNode node : block.declarationsAndStatements) {
+			if (node.getClass() == VariableDeclaration.class) {
+				VariableDeclaration dec = (VariableDeclaration)node;
+				switch(dec.type) {
+					case KW_int:{
+						mv.visitLocalVariable(dec.name, "I", null, startLabel, endLabel, dec.getSlot());
+					}
+					break;
+					case KW_float:{
+						mv.visitLocalVariable(dec.name, "F", null, startLabel, endLabel, dec.getSlot());
+					}
+					break;
+					case KW_boolean:{
+						mv.visitLocalVariable(dec.name, "Z", null, startLabel, endLabel, dec.getSlot());
+					}
+					break;
+					case KW_char:{
+						mv.visitLocalVariable(dec.name, "C", null, startLabel, endLabel, dec.getSlot());
+					}
+					break;
+					case KW_string:{
+						mv.visitLocalVariable(dec.name, "Ljava/lang/String;", null, startLabel, endLabel, dec.getSlot());
+					}
+					break;
+					default: {
+						throw new Exception("Type error");
+					}
+				}
+			} else if (node.getClass() == VariableListDeclaration.class) {
+				VariableListDeclaration decc = (VariableListDeclaration) node;
+				for (String name : decc.names) {
+					switch(decc.type) {
+						case KW_int:{
+							mv.visitLocalVariable(name, "I", null, startLabel, endLabel, decc.getSlot(name));
+						}
+						break;
+						case KW_float:{
+							mv.visitLocalVariable(name, "F", null, startLabel, endLabel, decc.getSlot(name));
+						}
+						break;
+						case KW_boolean:{
+							mv.visitLocalVariable(name, "Z", null, startLabel, endLabel, decc.getSlot(name));
+						}
+						break;
+						case KW_char:{
+							mv.visitLocalVariable(name, "C", null, startLabel, endLabel, decc.getSlot(name));
+						}
+						break;
+						case KW_string:{
+							mv.visitLocalVariable(name, "Ljava/lang/String;", null, startLabel, endLabel, decc.getSlot(name));
+						}
+						break;
+						default: {
+							throw new Exception("Type error");
+						}
+					}
+				}
+			}
+		}
+
 		return null;
 	}
 
@@ -74,27 +149,26 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 	public Object visitProgram(Program program, Object arg) throws Exception {
 		// TODO refactor and extend as necessary
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		// cw = new ClassWriter(0);
-		// If the call to mv.visitMaxs(1, 1) crashes, it is sometimes helpful
-		// to temporarily run it without COMPUTE_FRAMES. You probably won't
-		// get a completely correct classfile, but you will be able to see the
+		// cw = new ClassWriter(0); 
+		// If the call to mv.visitMaxs(1, 1) crashes, it is sometimes helpful 
+		// to temporarily run it without COMPUTE_FRAMES. You probably won't 
+		// get a completely correct classfile, but you will be able to see the 
 		// code that was generated.
-
+		
 		className = program.name;
 		classDesc = "L" + className + ";";
 		String sourceFileName = (String) arg;
 		cw.visit(52, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", null);
 		cw.visitSource(sourceFileName, null);
-
+		
 		// create main method
 		mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
 		// initialize
 		mv.visitCode();
-
+		
 		// add label before first instruction
 		Label mainStart = new Label();
-
-		mv.visitLabel(mainStart);
+		mv.visitLabel(mainStart);   //no diff
 
 		PLPCodeGenUtils.genLog(DEVEL, mv, "entering main");
 
@@ -102,16 +176,15 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 
 		// generates code to add string to log
 		PLPCodeGenUtils.genLog(DEVEL, mv, "leaving main");
-
+		
 		// adds the required (by the JVM) return statement to main
 		mv.visitInsn(RETURN);
 
 		// adds label at end of code
-		// Label mainEnd = new Label();
 		Label mainEnd = new Label();
-		mv.visitLabel(mainEnd);
+		mv.visitLabel(mainEnd);  //no diff
 		mv.visitLocalVariable("args", "[Ljava/lang/String;", null, mainStart, mainEnd, 0);
-
+		
 		// Because we use ClassWriter.COMPUTE_FRAMES as a parameter in the
 		// constructor, asm will calculate this itself and the parameters are ignored.
 		// If you have trouble with failures in this routine, it may be useful
@@ -119,7 +192,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		// from COMPUTE_FRAMES to 0.
 		// The generated classfile will not be correct, but you will at least be
 		// able to see what is in it.
-		mv.visitMaxs(15, 15);
+		mv.visitMaxs(0, 0);
 
 		// terminate construction of main method
 		mv.visitEnd();
@@ -128,59 +201,48 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		cw.visitEnd();
 
 		// generate classfile as byte array and return
-		return cw.toByteArray();
+		return cw.toByteArray();			
 	}
 
 	@Override
 	public Object visitVariableDeclaration(VariableDeclaration declaration, Object arg) throws Exception {
-		// TODO Auto-generated method stub
-		declaration.slot_number = current_slot++;
-		decList.add(declaration);
-		int num = declaration.slot_number;
-
-		if (declaration.getType().equals(Type.INTEGER)) {
-			declaration.SetJVMType("I");
-			System.out.println("declaration I");
-			// mv.visitInsn(num);
-			if (declaration.expression != null) {
+		// TODO Auto-generated method stub		
+		if (declaration.expression != null) {
+			if (declaration.getType().equals(Type.INTEGER)) {
+				declaration.SetJVMType("I");
+				System.out.println("declaration I");
+				
 				declaration.expression.visit(this, arg);
-				mv.visitVarInsn(ISTORE, declaration.slot_number);
-			}
-
-		} else if (declaration.getType().equals(Type.FLOAT)) {
-			declaration.SetJVMType("F");
-			//
-			System.out.println("declaration F");
-
-			if (declaration.expression != null) {
+				mv.visitVarInsn(ISTORE, declaration.getSlot());
+				
+	
+			} else if (declaration.getType().equals(Type.FLOAT)) {
+				declaration.SetJVMType("F");
+				System.out.println("declaration F");
+	
 				declaration.expression.visit(this, arg);
-				mv.visitVarInsn(FSTORE, declaration.slot_number);
-			}
-
-		} else if (declaration.getType().equals(Type.BOOLEAN)) {
-			declaration.SetJVMType("Z");
-			System.out.println("declaration Z");
-			if (declaration.expression != null) {
+				mv.visitVarInsn(FSTORE, declaration.getSlot());
+	
+			} else if (declaration.getType().equals(Type.BOOLEAN)) {
+				declaration.SetJVMType("Z");
+				System.out.println("declaration Z");
+	
 				declaration.expression.visit(this, arg);
-				mv.visitVarInsn(ISTORE, declaration.slot_number);
-			}
-
-		} else if (declaration.getType().equals(Type.CHAR)) {
-			declaration.SetJVMType("C");
-			System.out.println("declaration C");
-			if (declaration.expression != null) {
+				mv.visitVarInsn(ISTORE, declaration.getSlot());
+	
+			} else if (declaration.getType().equals(Type.CHAR)) {
+				declaration.SetJVMType("C");
+				System.out.println("declaration C");
 				declaration.expression.visit(this, arg);
-				mv.visitVarInsn(ISTORE, declaration.slot_number);
-			}
-
-		} else if (declaration.getType().equals(Type.STRING)) {
-			declaration.SetJVMType("LJava/lang/String");
-			System.out.println("declaration string");
-			if (declaration.expression != null) {
+				mv.visitVarInsn(ISTORE, declaration.getSlot());
+	
+			} else if (declaration.getType().equals(Type.STRING)) {
+				declaration.SetJVMType("LJava/lang/String");
+				System.out.println("declaration string");
+	
 				declaration.expression.visit(this, arg);
-				mv.visitVarInsn(ASTORE, declaration.slot_number);
-			}
-
+				mv.visitVarInsn(ASTORE, declaration.getSlot());
+				}
 		}
 
 		return null;
@@ -189,10 +251,12 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 	@Override
 	public Object visitVariableListDeclaration(VariableListDeclaration declaration, Object arg) throws Exception {
 		// TODO Auto-generated method stub
-		declaration.slot_number = current_slot++;
-		int num = declaration.slot_number;
-		decList.add(declaration);
-
+		for(String name : declaration.names) {
+			declaration.setSlot(name, current_slot);
+			current_slot++;
+		}
+		
+		
 		if (declaration.getType().equals(Type.INTEGER)) {
 			declaration.SetJVMType("I");
 		} else if (declaration.getType().equals(Type.FLOAT)) {
@@ -204,7 +268,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		} else if (declaration.getType().equals(Type.STRING)) {
 			declaration.SetJVMType("LJava/lang/String");
 		}
-
+		
 		return null;
 	}
 
@@ -223,14 +287,17 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			case OP_PLUS: {
 				mv.visitInsn(IADD);
 				return Type.INTEGER;
+				// break;
 			}
 			case OP_MINUS: {
 				mv.visitInsn(ISUB);
 				return Type.INTEGER;
+				// break;
 			}
 			case OP_TIMES: {
 				mv.visitInsn(IMUL);
 				return Type.INTEGER;
+				// break;
 			}
 			case OP_DIV: {
 				mv.visitInsn(IDIV);
@@ -258,34 +325,120 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 				return Type.INTEGER;
 			}
 			case OP_NEQ:
-				mv.visitJumpInsn(IF_ICMPNE, setTrue);
+				Label l1 = new Label();
+				Label l2 = new Label();
+				if(e1 == Type.INTEGER || e1 == Type.BOOLEAN)
+				{
+					mv.visitJumpInsn(IF_ICMPEQ, l1);   //jump to label if the two integer refs are equal
+				}
+				else if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFEQ, l1);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l2);
+				mv.visitLabel(l1);
 				mv.visitLdcInsn(false);
-				break;
+				mv.visitLabel(l2);
+				
+				return Type.BOOLEAN;
+				
 			case OP_EQ:
-				mv.visitJumpInsn(IF_ICMPEQ, setTrue);
+				Label l3 = new Label();
+				Label l4 = new Label();
+				if(e1 == Type.INTEGER || e1 == Type.BOOLEAN)
+				{
+					mv.visitJumpInsn(IF_ICMPNE, l3);	//jump to label if the two integer refs are equal
+				}
+				else if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFNE, l3);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l4);
+				mv.visitLabel(l3);
 				mv.visitLdcInsn(false);
-				break;
-			case OP_LE:
-				mv.visitJumpInsn(IF_ICMPLE, setTrue);
+				mv.visitLabel(l4);
+				return Type.BOOLEAN;
+			case OP_LE:{
+				Label l11 = new Label();
+				Label l21 = new Label();
+				if(e1 == Type.INTEGER || e1 == Type.BOOLEAN)
+				{
+					mv.visitJumpInsn(IF_ICMPGT, l11);
+				}
+				else if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFLT, l11);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l21);
+				mv.visitLabel(l11);
 				mv.visitLdcInsn(false);
-				break;
-			case OP_LT:
-				mv.visitJumpInsn(IF_ICMPLT, setTrue);
-				mv.visitLdcInsn(false);
-				break;
-			case OP_GE:
-				mv.visitJumpInsn(IF_ICMPGE, setTrue);
-				mv.visitLdcInsn(false);
-				break;
-			case OP_GT:
-				mv.visitJumpInsn(IF_ICMPGT, setTrue);
-				mv.visitLdcInsn(false);
-				break;
+				mv.visitLabel(l21);
+				return Type.BOOLEAN;
 			}
-			mv.visitJumpInsn(GOTO, endTrue);
-			mv.visitLabel(setTrue);
-			mv.visitLdcInsn(true);
-			mv.visitLabel(endTrue);
+			
+			case OP_LT:
+			{
+				Label l11 = new Label();
+				Label l21 = new Label();
+				if(e1 == Type.INTEGER || e1 == Type.BOOLEAN)
+				{
+					mv.visitJumpInsn(IF_ICMPGE, l11);
+				}
+				else if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFLE, l11);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l21);
+				mv.visitLabel(l11);
+				mv.visitLdcInsn(false);
+				mv.visitLabel(l21);	
+				return Type.BOOLEAN;
+			}
+			case OP_GE:{
+				Label l11 = new Label();
+				Label l21 = new Label();
+				if(e1 == Type.INTEGER || e1 == Type.BOOLEAN)
+				{
+					mv.visitJumpInsn(IF_ICMPLT, l11);
+				}
+				else if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFGT, l11);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l21);
+				mv.visitLabel(l11);
+				mv.visitLdcInsn(false);
+				mv.visitLabel(l21);
+				return Type.BOOLEAN;
+
+			}
+			case OP_GT:
+			{
+				Label l11 = new Label();
+				Label l21 = new Label();
+				
+				if(e1 == Type.INTEGER || e1 == Type.BOOLEAN)
+				{
+					mv.visitJumpInsn(IF_ICMPLE, l11);
+				}
+				else if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFGE, l11);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l21);
+				mv.visitLabel(l11);
+				mv.visitLdcInsn(false);
+				mv.visitLabel(l21);
+				return Type.BOOLEAN;
+			}
+			}
+			
 		} else if (e1 == Type.FLOAT && e2 == Type.FLOAT) {
 			switch (expressionBinary.op) {
 
@@ -316,34 +469,111 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 				return Type.FLOAT;
 			}
 			case OP_NEQ:
-				mv.visitJumpInsn(IF_ICMPNE, setTrue);
+				Label l1 = new Label();
+				Label l2 = new Label();
+				if(e1 == Type.INTEGER || e1 == Type.BOOLEAN)
+				{
+					mv.visitJumpInsn(IF_ICMPEQ, l1);
+				}
+				else if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFEQ, l1);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l2);
+				mv.visitLabel(l1);
 				mv.visitLdcInsn(false);
-				break;
+				mv.visitLabel(l2);
+				return Type.BOOLEAN;
+				
 			case OP_EQ:
-				mv.visitJumpInsn(IF_ICMPEQ, setTrue);
+				Label l3 = new Label();
+				Label l4 = new Label();
+				if(e1 == Type.INTEGER || e1 == Type.BOOLEAN)
+				{
+					mv.visitJumpInsn(IF_ICMPNE, l3);
+				}
+				else if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFNE, l3);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l4);
+				mv.visitLabel(l3);
 				mv.visitLdcInsn(false);
-				break;
-			case OP_LE:
-				mv.visitJumpInsn(IF_ICMPLE, setTrue);
+				mv.visitLabel(l4);
+				return Type.BOOLEAN;
+				
+			case OP_LE:{
+				Label l11 = new Label();
+				Label l21 = new Label();
+				if (e1 == Type.FLOAT) {
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFGT, l11);
+				}
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l21);
+				mv.visitLabel(l11);
 				mv.visitLdcInsn(false);
-				break;
-			case OP_LT:
-				mv.visitJumpInsn(IF_ICMPLT, setTrue);
-				mv.visitLdcInsn(false);
-				break;
-			case OP_GE:
-				mv.visitJumpInsn(IF_ICMPGE, setTrue);
-				mv.visitLdcInsn(false);
-				break;
-			case OP_GT:
-				mv.visitJumpInsn(IF_ICMPGT, setTrue);
-				mv.visitLdcInsn(false);
-				break;
+				mv.visitLabel(l21);
+				return Type.BOOLEAN;
 			}
-			mv.visitJumpInsn(GOTO, endTrue);
-			mv.visitLabel(setTrue);
-			mv.visitLdcInsn(true);
-			mv.visitLabel(endTrue);
+			
+			case OP_LT:
+			{
+				Label l11 = new Label();
+				Label l21 = new Label();
+
+				if(e1==(Type.INTEGER) || e2==(Type.BOOLEAN))
+				{
+					mv.visitJumpInsn(IF_ICMPLT, l11);
+				}
+				else
+				{
+					mv.visitInsn(FCMPL);
+					mv.visitJumpInsn(IFLT, l11);
+				}
+				mv.visitLdcInsn(false);
+				mv.visitJumpInsn(GOTO, l21);
+			    mv.visitLabel(l11);
+			    mv.visitLdcInsn(true);
+			    mv.visitLabel(l21);
+				return Type.BOOLEAN;
+			}
+				
+			case OP_GE:{
+				Label l11 = new Label();
+				Label l21 = new Label();
+
+				mv.visitInsn(FCMPL);
+				mv.visitJumpInsn(IFLT, l11);
+				
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l21);
+				mv.visitLabel(l11);
+				mv.visitLdcInsn(false);
+				mv.visitLabel(l21);
+				return Type.BOOLEAN;
+			}
+			
+			case OP_GT:
+			{
+				Label l11 = new Label();
+				Label l21 = new Label();
+
+				mv.visitInsn(FCMPL);
+				mv.visitJumpInsn(IFLE, l11);
+				
+				mv.visitLdcInsn(true);
+				mv.visitJumpInsn(GOTO, l21);
+				mv.visitLabel(l11);
+				mv.visitLdcInsn(false);
+				mv.visitLabel(l21);
+				return Type.BOOLEAN;
+			}
+			
+			}
+
 		} else if (e1 == Type.INTEGER && e2 == Type.FLOAT) {
 			switch (expressionBinary.op) {
 
@@ -356,6 +586,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			case OP_MINUS: {
 				mv.visitInsn(SWAP);
 				mv.visitInsn(I2F);
+				mv.visitInsn(SWAP);
 				mv.visitInsn(FSUB);
 
 				return Type.FLOAT;
@@ -369,6 +600,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			case OP_DIV: {
 				mv.visitInsn(SWAP);
 				mv.visitInsn(I2F);
+				mv.visitInsn(SWAP);
 				mv.visitInsn(FDIV);
 
 				return Type.FLOAT;
@@ -424,9 +656,21 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			switch (expressionBinary.op) {
 
 			case OP_PLUS: {
-				ExpressionStringLiteral s1 = (ExpressionStringLiteral) expressionBinary.leftExpression;
-				ExpressionStringLiteral s2 = (ExpressionStringLiteral) expressionBinary.rightExpression;
-				mv.visitLdcInsn(s1.text + s2.text);
+				expressionBinary.leftExpression.visit(this, null);
+				expressionBinary.rightExpression.visit(this, null);
+				Label l1 = new Label();
+				mv.visitLabel(l1);
+				mv.visitVarInsn(ASTORE, 2);
+				mv.visitVarInsn(ASTORE, 1);
+				mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+				mv.visitInsn(DUP);
+				mv.visitVarInsn(ALOAD, 1);
+//				mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;", false);
+				mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", false);
+				mv.visitVarInsn(ALOAD, 2);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+
 
 				return Type.STRING;
 			}
@@ -435,41 +679,69 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			switch (expressionBinary.op) {
 			case OP_AND: {
 				mv.visitInsn(IAND);
+//				mv.visitJumpInsn(GOTO, endTrue);
+//				mv.visitLabel(setTrue);
+//				mv.visitLdcInsn(true);
+//				mv.visitLabel(endTrue);
 				return Type.BOOLEAN;
 			}
 			case OP_OR: {
 				mv.visitInsn(IOR);
+//				mv.visitJumpInsn(GOTO, endTrue);
+//				mv.visitLabel(setTrue);
+//				mv.visitLdcInsn(true);
+//				mv.visitLabel(endTrue);
 				return Type.BOOLEAN;
 			}
 			case OP_NEQ:
 				mv.visitJumpInsn(IF_ICMPNE, setTrue);
 				mv.visitLdcInsn(false);
+				mv.visitJumpInsn(GOTO, endTrue);
+				mv.visitLabel(setTrue);
+				mv.visitLdcInsn(true);
+				mv.visitLabel(endTrue);
 				return Type.BOOLEAN;
 			case OP_EQ:
 				mv.visitJumpInsn(IF_ICMPEQ, setTrue);
 				mv.visitLdcInsn(false);
+				mv.visitJumpInsn(GOTO, endTrue);
+				mv.visitLabel(setTrue);
+				mv.visitLdcInsn(true);
+				mv.visitLabel(endTrue);
 				return Type.BOOLEAN;
 			case OP_LE:
 				mv.visitJumpInsn(IF_ICMPLE, setTrue);
 				mv.visitLdcInsn(false);
+				mv.visitJumpInsn(GOTO, endTrue);
+				mv.visitLabel(setTrue);
+				mv.visitLdcInsn(true);
+				mv.visitLabel(endTrue);
 				return Type.BOOLEAN;
 			case OP_LT:
 				mv.visitJumpInsn(IF_ICMPLT, setTrue);
 				mv.visitLdcInsn(false);
+				mv.visitJumpInsn(GOTO, endTrue);
+				mv.visitLabel(setTrue);
+				mv.visitLdcInsn(true);
+				mv.visitLabel(endTrue);
 				return Type.BOOLEAN;
 			case OP_GE:
 				mv.visitJumpInsn(IF_ICMPGE, setTrue);
 				mv.visitLdcInsn(false);
+				mv.visitJumpInsn(GOTO, endTrue);
+				mv.visitLabel(setTrue);
+				mv.visitLdcInsn(true);
+				mv.visitLabel(endTrue);
 				return Type.BOOLEAN;
 			case OP_GT:
 				mv.visitJumpInsn(IF_ICMPGT, setTrue);
 				mv.visitLdcInsn(false);
+				mv.visitJumpInsn(GOTO, endTrue);
+				mv.visitLabel(setTrue);
+				mv.visitLdcInsn(true);
+				mv.visitLabel(endTrue);
 				return Type.BOOLEAN;
 			}
-			mv.visitJumpInsn(GOTO, endTrue);
-			mv.visitLabel(setTrue);
-			mv.visitLdcInsn(true);
-			mv.visitLabel(endTrue);
 		}
 
 		return null;
@@ -482,7 +754,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		expressionConditional.condition.visit(this, arg);
 		Label L0 = new Label();
 		Label L1 = new Label();
-		mv.visitJumpInsn(IFNE, L0);
+		mv.visitJumpInsn(IFNE, L0);  // if that's true
 		t = (Type) expressionConditional.falseExpression.visit(this, arg);
 		mv.visitJumpInsn(GOTO, L1);
 		mv.visitLabel(L0);
@@ -505,10 +777,12 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			} else if (FunctionWithArg.functionName.equals(Kind.KW_float)) {
 				mv.visitInsn(I2F);
 				return Type.FLOAT;
+			}else if(FunctionWithArg.functionName.equals(Kind.KW_int)) {
+				return Type.INTEGER;
 			}
 		} else if (t.equals(Type.FLOAT)) {
 			if (FunctionWithArg.functionName.equals(Kind.KW_abs)) {
-				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Math", "abs", "(I)I", false);
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Math", "abs", "(F)F", false);
 				return Type.FLOAT;
 			} else if (FunctionWithArg.functionName.equals(Kind.KW_sin)) {
 				mv.visitInsn(F2D);
@@ -556,25 +830,66 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		System.out.println("ExpressionIdent:f");
 
 		if (expressionIdent.decc != null) {
-			num = expressionIdent.decc.get_current_slot();
+			num = expressionIdent.decc.getSlot(expressionIdent.name);
 			t = PLPTypes.getType(expressionIdent.decc.type);
+			
 			System.out.println("ExpressionIdent:decc");
 		} else {
-			num = expressionIdent.dec.get_current_slot();
+			num = expressionIdent.dec.getSlot();
 			t = PLPTypes.getType(expressionIdent.dec.type);
 			System.out.println("ExpressionIdent:dec");
 		}
 
-		if (t == Type.INTEGER || t == Type.BOOLEAN || t == Type.CHAR) {
-			mv.visitIntInsn(ILOAD, num);
-			System.out.println("ExpressionIdent:ILOAD");
-			// mv.visitVarInsn(ISTORE, expressionIdent.get_current_slot());
-		} else if (t == Type.FLOAT) {
-			mv.visitIntInsn(FLOAD, num);
-			System.out.println("ExpressionIdent:FLOAD");
-		} else if (t == Type.STRING) {
-			mv.visitIntInsn(ALOAD, num);
-			System.out.println("ExpressionIdent:ALOAD");
+		
+		if (expressionIdent.dec!=null) {
+			VariableDeclaration declartion = (VariableDeclaration) expressionIdent.dec;
+			switch (declartion.type) {
+				case KW_int:{
+					mv.visitVarInsn(ILOAD, declartion.getSlot());
+				}
+				break;
+				case KW_float:{
+					mv.visitVarInsn(FLOAD, declartion.getSlot());
+				}
+				break;
+				case KW_boolean:{
+					mv.visitVarInsn(ILOAD, declartion.getSlot());
+				}
+				break;
+				case KW_char:{
+					mv.visitVarInsn(ILOAD, declartion.getSlot());
+				}
+				break;
+				case KW_string:{
+					mv.visitVarInsn(ALOAD, declartion.getSlot());
+				}
+				break;
+			}
+		}
+		else if (expressionIdent.decc!=null) {
+			VariableListDeclaration declartion = (VariableListDeclaration) expressionIdent.decc;
+			switch (declartion.type) {
+				case KW_int:{
+					mv.visitVarInsn(ILOAD, declartion.getSlot(expressionIdent.name));
+				}
+				break;
+				case KW_float:{
+					mv.visitVarInsn(FLOAD, declartion.getSlot(expressionIdent.name));
+				}
+				break;
+				case KW_boolean:{
+					mv.visitVarInsn(ILOAD, declartion.getSlot(expressionIdent.name));
+				}
+				break;
+				case KW_char:{
+					mv.visitVarInsn(ILOAD, declartion.getSlot(expressionIdent.name));
+				}
+				break;
+				case KW_string:{
+					mv.visitVarInsn(ALOAD, declartion.getSlot(expressionIdent.name));
+				}
+				break;
+			}
 		}
 
 		return t;
@@ -583,6 +898,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 	@Override
 	public Object visitExpressionIntegerLiteral(ExpressionIntegerLiteral expressionIntegerLiteral, Object arg)
 			throws Exception {
+		// if(intoLHS) mv.visitIntInsn(BIPUSH, expressionIntegerLiteral.value);
 		mv.visitLdcInsn(expressionIntegerLiteral.value);
 		System.out.println("IntegerLiteral");
 		return Type.INTEGER;
@@ -629,41 +945,54 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		// TODO Auto-generated method stub
 		System.out.println("assign!");
 
-		Type t = (Type) statementAssign.expression.visit(this, arg);
-		Type tlhs = (Type) statementAssign.lhs.visit(this, arg);
-		//
-
+		Type t = (Type) statementAssign.expression.visit(this, null);
+		Type tlhs = (Type) statementAssign.lhs.visit(this, null);
+		
+		
 		if (t.equals(Type.INTEGER)) {
 			if (statementAssign.expression instanceof ExpressionIntegerLiteral) {
-				ExpressionIntegerLiteral temp = (ExpressionIntegerLiteral) statementAssign.expression;
-				mv.visitIntInsn(BIPUSH, temp.value);
+				if (statementAssign.lhs.dec != null) {
+					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+				} else {
+					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+				}
 			}
 		} else if (t.equals(Type.FLOAT)) {
 			if (statementAssign.expression instanceof ExpressionFloatLiteral) {
-				ExpressionFloatLiteral temp = (ExpressionFloatLiteral) statementAssign.expression;
-				mv.visitLdcInsn(new Float(Float.toString(temp.value)));
+				if (statementAssign.lhs.dec != null) {
+					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+				} else {
+					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+				}
 			}
 
 		} else if (t.equals(Type.BOOLEAN)) {
-
-			if (statementAssign.lhs.dec != null) {
-				mv.visitInsn(statementAssign.lhs.dec.slot_number);
-			} else {
-				mv.visitInsn(statementAssign.lhs.decc.slot_number);
+			if (statementAssign.expression instanceof ExpressionBooleanLiteral) {
+				if (statementAssign.lhs.dec != null) {
+					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+				} else {
+					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+				}
 			}
 		} else if (t.equals(Type.CHAR)) {
 			if (statementAssign.expression instanceof ExpressionCharLiteral) {
-				ExpressionCharLiteral temp = (ExpressionCharLiteral) statementAssign.expression;
-				mv.visitIntInsn(BIPUSH, (temp.text - '0') + 96);
+				if (statementAssign.lhs.dec != null) {
+					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+				} else {
+					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+				}
 			}
 
 		} else if (t.equals(Type.STRING)) {
 			if (statementAssign.expression instanceof ExpressionStringLiteral) {
-				ExpressionStringLiteral temp = (ExpressionStringLiteral) statementAssign.expression;
-				mv.visitLdcInsn(temp.text);
+				if (statementAssign.lhs.dec != null) {
+					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+				} else {
+					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+				}
 			}
+			
 		}
-
 		return null;
 	}
 
@@ -672,54 +1001,52 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		// TODO Auto-generated method stub
 		PLPTypes type = new PLPTypes();
 		Type t = null;
+		// t = lhs.dec.getType();
 		System.out.println("LHS:f");
-		intoLHS = true;
+		
 
-		if (lhs.decc != null) {
+		if (lhs.dec != null) {
 
-			t = lhs.decc.getType();
-			System.out.println("LHS:decc");
-		} else {
 			t = lhs.dec.getType();
 			System.out.println("LHS:dec");
+		} else {
+			t = lhs.decc.getType();
+			System.out.println("LHS:decc");
 		}
+
 
 		if (t == Type.INTEGER || t == Type.BOOLEAN || t == Type.CHAR) {
 			if (lhs.dec != null) {
-
-				mv.visitVarInsn(ISTORE, lhs.dec.get_current_slot());
+				
+				mv.visitVarInsn(ISTORE, lhs.dec.getSlot());
 			} else if (lhs.decc != null) {
-				mv.visitVarInsn(ISTORE, lhs.decc.get_current_slot());
+				mv.visitVarInsn(ISTORE, lhs.decc.getSlot(lhs.identifier));
 			}
 		} else if (t == Type.STRING) {
 			if (lhs.dec != null) {
-				mv.visitVarInsn(ASTORE, lhs.dec.get_current_slot());
+				mv.visitVarInsn(ASTORE, lhs.dec.getSlot());
 			} else if (lhs.decc != null) {
-				mv.visitVarInsn(ASTORE, lhs.decc.get_current_slot());
+				mv.visitVarInsn(ASTORE, lhs.decc.getSlot(lhs.identifier));
 			}
 		} else if (t == Type.FLOAT) {
 			if (lhs.dec != null) {
-				mv.visitVarInsn(FSTORE, lhs.dec.get_current_slot());
+				mv.visitVarInsn(FSTORE, lhs.dec.getSlot());
 			} else if (lhs.decc != null) {
-				mv.visitVarInsn(FSTORE, lhs.decc.get_current_slot());
+				mv.visitVarInsn(FSTORE, lhs.decc.getSlot(lhs.identifier));
 			}
 		}
 
-		return null;
+		return t;
 	}
 
 	@Override
 	public Object visitIfStatement(IfStatement ifStatement, Object arg) throws Exception {
 		// TODO Auto-generated method stub
-
-		ifStatement.condition.visit(this, arg);
 		Label afterIf = new Label();
-		mv.visitJumpInsn(IFEQ, afterIf);
+		ifStatement.condition.visit(this, arg);
+		mv.visitJumpInsn(IFEQ, afterIf);     //jump to label if value is zero	1 -> true	0 -> false
 		ifStatement.block.visit(this, arg);
-		// Label startIf = new Label();
-		mv.visitLabel(afterIf); // added (if want to get back, delete this line and uncomment this other
-								// commented line)
-
+		mv.visitLabel(afterIf); 
 
 		return null;
 	}
@@ -727,19 +1054,17 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 	@Override
 	public Object visitWhileStatement(WhileStatement whileStatement, Object arg) throws Exception {
 		// TODO Auto-generated method stub
-		Label whileExpression = new Label();
-		Label whileBlock = new Label();
-		mv.visitJumpInsn(GOTO, whileExpression);
-		mv.visitLabel(whileBlock);
+		
+		Label l1 = new Label();
+		Label l2 = new Label();
+		mv.visitJumpInsn(GOTO, l1);
+		
+		mv.visitLabel(l2);
 		whileStatement.b.visit(this, arg);
-		Label endwhile = new Label();
-		mv.visitLabel(endwhile);
-		mv.visitLabel(whileExpression);
+		mv.visitLabel(l1);
 		whileStatement.condition.visit(this, arg);
-		Label endWhileExpr = new Label();
-		mv.visitLabel(endWhileExpr);
-		mv.visitJumpInsn(IFNE, whileBlock);
-
+		mv.visitJumpInsn(IFNE, l2);     // IFNE: jump to label if value is not zero
+		
 		return null;
 	}
 
@@ -751,62 +1076,59 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		 * In all cases, invoke CodeGenUtils.genLogTOS(GRADE, mv, type); before
 		 * consuming top of stack.
 		 */
-
 		Type type = (Type) printStatement.expression.visit(this, arg);
 
 		switch (type) {
-		case INTEGER: {
+			case INTEGER: {
+				mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+				mv.visitInsn(SWAP);
+				PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(I)V", false);
+			}
+				break;
+			case BOOLEAN: {
+				PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
+				// TODO implement functionality
+				mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+				mv.visitInsn(Opcodes.SWAP);
+				// printStatement.expression.visit(this, arg);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Z)V", false);
+				// throw new UnsupportedOperationException();
+			}
+				break;
 
-			mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+			case FLOAT: {
+				PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
+				// TODO implement functionality
+				mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+				mv.visitInsn(Opcodes.SWAP);
+				// printStatement.expression.visit(this, arg);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(F)V", false);
+				// throw new UnsupportedOperationException();
+			}
+				break;
 
-			mv.visitInsn(Opcodes.SWAP);
-			// printStatement.expression.visit(this, arg);
-			PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
-			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(I)V", false);
-		}
-			break;
-		case BOOLEAN: {
-			PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
-			// TODO implement functionality
-			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			mv.visitInsn(Opcodes.SWAP);
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Z)V", false);
-			// throw new UnsupportedOperationException();
-		}
-			break;
-		// break; commented out because currently unreachable. You will need
-		// it.
-		case FLOAT: {
-			PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
-			// TODO implement functionality
-			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			mv.visitInsn(Opcodes.SWAP);
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(F)V", false);
-			// throw new UnsupportedOperationException();
-		}
-			break;
-		// break; commented out because currently unreachable. You will need
-		// it.
-		case CHAR: {
-			PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
-			// TODO implement functionality
-			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			mv.visitInsn(Opcodes.SWAP);
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(C)V", false);
-			// throw new UnsupportedOperationException();
-		}
-			break;
-		// break; commented out because currently unreachable. You will need
-		// it.
-		case STRING: {
-			PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
-			// TODO implement functionality
-			mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-			printStatement.expression.visit(this, arg);
-			mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
-			// throw new UnsupportedOperationException();
-		}
-			break;
+			case CHAR: {
+				PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
+				// TODO implement functionality
+				mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+				mv.visitInsn(Opcodes.SWAP);
+				// printStatement.expression.visit(this, arg);
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(C)V", false);
+				// throw new UnsupportedOperationException();
+			}
+				break;
+
+			case STRING: {
+	
+				PLPCodeGenUtils.genLogTOS(GRADE, mv, type);
+				mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out",
+						"Ljava/io/PrintStream;");
+				mv.visitInsn(Opcodes.SWAP);
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream",
+						"println", "(Ljava/lang/String;)V", false);
+			}
+				break;
 		}
 
 		return null;
@@ -816,9 +1138,9 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 	@Override
 	public Object visitSleepStatement(SleepStatement sleepStatement, Object arg) throws Exception {
 		// TODO Auto-generated method stub
-		sleepStatement.time.visit(this, arg);
+		sleepStatement.time.visit(this, null);
 		mv.visitInsn(I2L);
-		mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Thread/Thread", "sleep", "(J)V", false);
+		mv.visitMethodInsn(INVOKESTATIC, "java/lang/Thread", "sleep", "(J)V", false);
 		return null;
 	}
 
@@ -834,16 +1156,10 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		Label l = new Label();
 		if (expressionUnary.op.equals(Kind.OP_MINUS)) {
 			if (type.equals(Type.INTEGER)) {
-				mv.visitInsn(DUP);
-				mv.visitVarInsn(ISTORE, 7);
-				mv.visitJumpInsn(IFGT, set);
+				mv.visitInsn(INEG);
 				returnType = Type.INTEGER;
 			} else if (type.equals(Type.FLOAT)) {
-				mv.visitInsn(DUP);
-				mv.visitVarInsn(FSTORE, 7);
-				mv.visitLdcInsn((float) 7);
-				mv.visitInsn(FCMPL);
-				mv.visitJumpInsn(IFGT, set);
+				mv.visitInsn(FNEG);
 				returnType = Type.FLOAT;
 			}
 		} else if (expressionUnary.op.equals(Kind.OP_EXCLAMATION)) {
@@ -852,40 +1168,36 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 				mv.visitInsn(IXOR);
 				returnType = Type.INTEGER;
 			} else if (type.equals(Type.BOOLEAN)) {
+				Label l1 = new Label();
+				Label l2 = new Label();
+				mv.visitJumpInsn(IFEQ, l1);
+				mv.visitLdcInsn(false);
+				mv.visitJumpInsn(GOTO, l2);
+				mv.visitLabel(l1);
 				mv.visitLdcInsn(true);
-				mv.visitJumpInsn(IF_ICMPEQ, set);
-				mv.visitLdcInsn(true);
+				mv.visitLabel(l2);
+
 				returnType = Type.BOOLEAN;
 			}
 		}
 		if (type.equals(Type.INTEGER) && expressionUnary.op.equals(Kind.OP_MINUS)) {
-			mv.visitVarInsn(ILOAD, 7);
 			returnType = Type.INTEGER;
 		}
 		if (type.equals(Type.FLOAT) && expressionUnary.op.equals(Kind.OP_MINUS)) {
-			mv.visitVarInsn(ILOAD, 7);
 			returnType = Type.FLOAT;
 		}
 
-		mv.visitJumpInsn(GOTO, l);
-		mv.visitLabel(set);
-
 		if (type.equals(Type.INTEGER) && expressionUnary.op.equals(Kind.OP_MINUS)) {
-			mv.visitVarInsn(ILOAD, 7);
-			mv.visitInsn(INEG);
+
 			returnType = Type.INTEGER;
 		}
 		if (type.equals(Type.FLOAT) && expressionUnary.op.equals(Kind.OP_MINUS)) {
-			mv.visitVarInsn(ILOAD, 7);
-			mv.visitInsn(FNEG);
+
 			returnType = Type.FLOAT;
 		}
 		if (type.equals(Type.BOOLEAN) && expressionUnary.op.equals(Kind.OP_EXCLAMATION)) {
-			mv.visitLdcInsn(false);
 			returnType = Type.BOOLEAN;
 		}
-		mv.visitLabel(l);
-		mv.visitLdcInsn(false);
 
 		return returnType;
 	}

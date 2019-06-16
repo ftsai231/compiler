@@ -127,6 +127,78 @@ public class PLPCodeGenTest {
 			assertEquals("entering main;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
 		
+		
+		@Test
+		public void emptyPrsog() throws Exception {
+			String prog = "emptyProg";	
+			String input = prog + "  {print !false; print !true; print !(true | false); print !(true & false);}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;false;false;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		@Test
+		public void empstyPrsog() throws Exception {
+			String prog = "emptyProg";	
+			String input = prog + "  {print (true | false);}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void emptyPsrsog() throws Exception {
+			String prog = "emptyProg";	
+			String input = prog + "  {int x; x = 0; while ( x <3 ) {char b; b = 'a'; print b; x = x + 1;};}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;a[aaa]4;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void test1() throws Exception {
+			String prog = "test1";	
+			String input = prog + "{int x; x = 1; if ( 2 < 3) {int y=-1;print y;}; print x;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;-1;1;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void testd1() throws Exception {
+			String prog = "test1";	
+			String input = prog + "{boolean x; x = true; if ( 2 < 3) { x = false; print x;}; print x;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;false;false;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void tesst1() throws Exception {
+			String prog = "test1";	
+			String input = prog + "{int a;a=5;char c;while(a>1){c ='b';print c;a=a-1;};print a;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;4;3;2;1;1;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		
+		
+		@Test
+		public void empog() throws Exception {
+			String prog = "emptyProg";	
+			String input = prog + "{print 4 ** 3 ** 2;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;262144;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
 		@Test
 		public void integerLit() throws Exception {
 			String prog = "intgegerLit";
@@ -137,37 +209,60 @@ public class PLPCodeGenTest {
 			assertEquals("entering main;sfsff;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
 		
-		@Test
-		public void test1() throws Exception {
-			String prog = "test1";	
-			String input = prog + "{int a=5;while(a>1){a=a-1;};print a;}";
-			byte[] bytecode = genCode(input);
-			runCode(prog, bytecode);
-			show("Log:\n "+PLPRuntimeLog.globalLog);
-			assertEquals("entering main;1;leaving main;",PLPRuntimeLog.globalLog.toString());
-		}
+		
 		
 		@Test
 		public void test2() throws Exception {
 			String prog = "test2";	
-			String input = prog + "{int x,b,c,d;}";
-			byte[] bytecode = genCode(input);
-			runCode(prog, bytecode);
-			show("Log:\n "+PLPRuntimeLog.globalLog);
-			assertEquals("entering main;leaving main;",PLPRuntimeLog.globalLog.toString());
-		}
-		
-		
-		
-		@Test
-		public void test3() throws Exception {
-			String prog = "test3";	
-			String input = prog + "{char c = 's';int x =1; print x;}";
+			String input = prog + "{int x,b,c,d;x=1;print x;}";
 			byte[] bytecode = genCode(input);
 			runCode(prog, bytecode);
 			show("Log:\n "+PLPRuntimeLog.globalLog);
 			assertEquals("entering main;1;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
+		
+		@Test
+		public void Random() throws Exception {
+			String prog = "rand";	
+			String input = prog + "{boolean x = true & true & true; print x;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		
+		@Test
+		public void Random2() throws Exception {
+			String prog = "rand2";	
+			String input = prog + "{int a=1;while(a>5){a=a+1;}; print a;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;1;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void test3() throws Exception {
+			String prog = "test3";	
+			String input = prog + "{char c='a';c='x'; print c;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;x;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void testc3() throws Exception {
+			String prog = "test3";	
+			String input = prog + "{int c;c=2; print c;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;2;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		
 		@Test
 		public void test4() throws Exception {
 			String prog = "test4";	
@@ -240,7 +335,38 @@ public class PLPCodeGenTest {
 			show("Log:\n "+PLPRuntimeLog.globalLog);
 			assertEquals("entering main;2;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
-
+		 
+		
+		@Test
+		public void printFloat() throws Exception {
+			String prog = "test7";	
+			String input = prog + "{float x,y; x = 2.1; y = 3.2; print x; print y;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;2.1;3.2;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void binary() throws Exception {
+			String prog = "test7";	
+			String input = prog + "{print 2.2==2.2; print 2.2 != 2.1; print 2.1>3.1; print 2.1<3.1; print 2.1>=2.1; print 2.1<=3.1;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;true;false;true;true;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void tessst2() throws Exception {
+			String prog = "test2";	
+			String input = prog + "{print 2!=1;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
 		@Test
 		public void test8() throws Exception {
 			String prog = "test8";	
@@ -249,6 +375,16 @@ public class PLPCodeGenTest {
 			runCode(prog, bytecode);
 			show("Log:\n "+PLPRuntimeLog.globalLog);
 			assertEquals("entering main;d;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void booltest() throws Exception {
+			String prog = "test8";	
+			String input = prog + "{print true==true; print true != false; print true>false; print true<false; print true>=true; print true<=false;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;true;true;false;true;false;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
 		
 //		@Test
@@ -270,6 +406,16 @@ public class PLPCodeGenTest {
 			show("Log:\n "+PLPRuntimeLog.globalLog);
 			assertEquals("entering main;false;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
+		
+		@Test
+		public void testprint() throws Exception {
+			String prog = "test7";	
+			String input = prog + " {print 3; print 5;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;3;5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
 		@Test
 		public void test11() throws Exception {
 			String prog = "test11";	
@@ -279,4 +425,782 @@ public class PLPCodeGenTest {
 			show("Log:\n "+PLPRuntimeLog.globalLog);
 			assertEquals("entering main;wwt;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
+		@Test
+		public void testCase1() throws Exception {
+			String prog = "testCase1";
+			String input = prog + "{string a = \"test\"; string b = \" case\" ; print a+b; print b;}";	
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;test case; case;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*while loop*/
+		@Test
+		public void testCase2() throws Exception {
+			String prog = "testCase2";
+			String input = prog + "{int a; a = 1; while(a<3){a=a+1;print(a);};}";	
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;2;3;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*condition*/
+		@Test
+		public void testCase3() throws Exception {
+			String prog = "testCase3";
+			String input = prog + "{int a,b; a = 1; float c = 1.5; if(a>=0){float d = 3.0; print(c); c = c + d; print(c);};print(c);}";	
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;1.5;4.5;4.5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*local variable*/
+		@Test
+		public void testCase4() throws Exception {
+			String prog = "testCase4";
+			String input = prog + " {\n"
+					+ "\tchar a='d';\n"
+					+ "\tboolean b = true;\n"
+					+ "\tif(true){\n"
+					+ "\t\tfloat a=2.2;\n"
+					+ "\t\twhile(b){\n"
+					+ "\t\t\tstring a=\"testCase4\";\n"
+					+ "\t\t\tprint(a);\n"
+					+ "\t\t\tb=false;\n"
+					+ "\t\t};\n"
+					+ "\t\tprint(a);\n"
+					+ "\t};\n"
+					+ "\tprint(a);\n"
+					+ "}";	
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;testCase4;2.2;d;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*calculation*/
+		@Test
+		public void testCase5() throws Exception {
+			String prog = "testCase5";
+			String input = prog + " {\n"
+			+ "\tfloat a,b,c;\n"
+			+ "\tc = 0.0;\n"
+			+ "\tint d = 3;\n"
+			+ "\ta = 3.3;\n"
+			+ "\tif(a + d > 6.2){\n"
+			+ "\t\tb = 2.5;\n"
+			+ "\t\tc = b + a;\n"
+			+ "\t\tprint(c);\n"
+			+ "\t};\n"
+			+ "\tprint(c + d);\n"
+			+ "}";
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;5.8;8.8;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*assign multiple times*/
+		@Test
+		public void testCase6() throws Exception {
+			String prog = "testCase6";
+			String input = prog + " {\n"
+					+ "\tint b=7;\n"
+					+ "\tint a;\n"
+					+ "\tint c = 10;\n"
+					+ "\ta=3;\n"
+					+ "\ta=4;\n"
+					+ "\tint d= 9;\n"
+					+ "\tprint(a);\n"
+			+ "}";
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;4;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*calculation*/
+		@Test
+		public void testCase7() throws Exception {
+			String prog = "testCase7";
+			String input = prog + " {\n"
+					+ "\tint a = 3;\n"
+					+ "\tfloat b;\n"
+					+ "\tb = a + 0.4;\n"
+					+ "\tfloat c = (a+b)*a;\n"
+					+ "\tprint(c);\n"
+			+ "}";
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;19.2;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*comprehensive 1*/
+		@Test
+		public void testCase8() throws Exception {
+			String prog = "testCase8";
+			String input = prog + "{\n" + 
+					"	int a=3;\n" + 
+					"	int b,c,d;\n" + 
+					"	b=2;\n" + 
+					"	c=5;\n" + 
+					"	d=6;\n" + 
+					"	int avg = (a+b+c+d)/4;\n" + 
+					"	boolean result = avg == 5?true:false;\n" + 
+					"	print(result);\n" + 
+					"	if(a==3|b<=1){\n" + 
+					"		print(a==3|b<=1);\n" + 
+					"		char c = 'x';\n" + 
+					"		if(true&avg>6){\n" + 
+					"			print(true&avg>6);\n" + 
+					"			a=0;\n" + 
+					"		};\n" + 
+					"		print(c);\n" + 
+					"	};\n" + 
+					"	print(a);\n" + 
+					"}";
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;false;true;x;3;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*comprehensive 2*/
+		@Test
+		public void testCase9() throws Exception {
+			String prog = "testCase9";
+			String input = prog + "{\n" + 
+					"	float a = 0.1;\n" + 
+					"	while(a<=0.5){\n" + 
+					"		print(a);\n" + 
+					"		a = a + 0.1;\n" + 
+					"		if(a>0.5){\n" + 
+					"			a = 70.3;\n" + 
+					"		};\n" + 
+					"	};\n" + 
+					"	print(a);\n" + 
+					"}";
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;0.1;0.2;0.3;0.4;0.5;70.3;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*comprehensive 3*/
+		@Test
+		public void testCase10() throws Exception {
+			String prog = "testCase10";
+			String input = prog + "{\n" + 
+					"	int a = 0;\n" + 
+					"	int b;\n" + 
+					"	b=0;\n" + 
+					"	while(b <= 10){\n" + 
+					"		a=a+2;\n" + 
+					"		if(b<a){\n" + 
+					"			a=b;\n" + 
+					"		};\n" + 
+					"		b=b+1;\n" + 
+					"		print(a);\n" + 
+					"		print(b);\n" + 
+					"	}; \n" + 
+					"}";
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;0;1;1;2;2;3;3;4;4;5;5;6;6;7;7;8;8;9;9;10;10;11;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		/*comprehensive 4*/
+		@Test
+		public void testCase11() throws Exception {
+			String prog = "testCase11";
+			String input = prog + "{\n"
+					+ "int a = 3;"
+					+ "int b;"
+					+ "b=2;"
+					+ "if(a==3){"
+					//+ "a=a-1;"
+					+ "b=2**b;"
+					+ "print(b);"
+					+ "};"				
+					+ "}";
+			byte[] bytecode = genCode(input);		
+			runCode(prog, bytecode);	
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;4;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void testc6() throws Exception{
+				String prog = "test6";
+				String input = prog + "{print !2;} ";
+				byte[] bytecode = genCode(input);
+				runCode(prog, bytecode);
+				show("Log:\n"+PLPRuntimeLog.globalLog);
+				assertEquals("entering main;-3;leaving main;",PLPRuntimeLog.globalLog.toString());
+			}
+		@Test
+		public void test7c() throws Exception{
+			String prog = "test7";
+			String input = prog + "{print -2.4;} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;-2.4;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void tesst8() throws Exception{
+			String prog = "test8";
+			String input = prog + "{int i; float b; i=2;b = 2.5; print i;  print b;} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;2;2.5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}@Test
+		public void test9() throws Exception{
+			String prog = "test9";
+			String input = prog + "{char a; char b; a='a'; b= 'b'; print a; print b; } ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;a;b;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test1c0() throws Exception{
+			String prog = "test10";
+			String input = prog + "{boolean a; a= true; boolean c; c = false; boolean b; b= a&c; print b;"
+					+ "b= a|c; print b; b= a == c; print b; b= a!=c; print b;} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;false;true;false;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void tecst11() throws Exception {
+			String prog = "test11";
+			String block = "{int a; a= 5; int b; b= +a; print b; b= -a; print b; b= !a; print b;} ";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;5;-5;-6;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test12() throws Exception {
+			String prog = "test12";
+			String block = "{float a; a= 3.5; float b; b= +a; print b; b= -a; print b;} ";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;3.5;-3.5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test13() throws Exception {
+			String prog = "test13";
+			String block = "{float a; a = log(1.0); print a; a= float(4); print a; int b; b = abs(-3); print b; "
+					+ "b= int(5.6); print b;} ";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;0.0;4.0;3;5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		
+
+		@Test
+		public void test14() throws Exception {
+			String prog = "test14";
+			String block ="{print 9 + 4.5;print 9 - 4.5;print 9 * 4.5;print 8 / 4.2;print 9 ** 4.1;}" ;
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;13.5;4.5;40.5;1.904762;8173.239;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test15() throws Exception {
+			String prog = "test15";
+			String block = "{print 9.1 + 4;print 9.1 - 4;print 9.1 * 4;print 8.2 / 4;print 9.1 ** 4;}";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;13.1;5.1000004;36.4;2.05;6857.497;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test16() throws Exception {
+			String prog = "test16";
+			String block = "{print -3; print -4.5; print -3-4.5;}";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;-3;-4.5;-7.5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test17() throws Exception {
+			String prog = "test17";
+			String block = "{print abs(1); print abs(-1); print abs(5.3); print abs(-5.3); print abs(1-5.3);}";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;1;1;5.3;5.3;4.3;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test18() throws Exception {
+			String prog = "test18";
+			String block = "{print !1; print !-1; print !0; print !-2;}";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;-2;0;-1;1;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test19() throws Exception {
+			String prog = "test19";
+			String block = "{int a; a= 10; while(a > 0) {int b; b= a - 1; a = b; print b;};} ";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;9;8;7;6;5;4;3;2;1;0;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test20() throws Exception {
+			String prog = "test20";
+			String block =  "{int a; a= 10; if(a >= 0) {int b; b= a - 1; print b;print a;};} ";;
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;9;10;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test21() throws Exception {
+			String prog = "test14";
+			String block = "{print 3 > 5 ? 3: 5;} ";
+			String input = prog + block;
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test22() throws Exception{
+			String prog = "test22";
+			String input = prog + "{int i, k,j; k=10;i=3; j=4; print k;  print j; print k;} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;10;4;10;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+
+
+		@Test
+		public void test23() throws Exception {
+			String prog = "test23";
+			String input = prog + "{print (0+2.5)+(3*1);} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;5.5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test24() throws Exception {
+			String prog = "test24";
+			String input = prog + "{print (2+1)*(3-1.5);} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;4.5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test25() throws Exception {
+			String prog = "test25";
+			String input = prog + "{print 2&3;} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;2;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test26() throws Exception {
+			String prog = "test26";
+			String input = prog + "{print (2+14.9)>=(14.8+2.1);} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test27() throws Exception {
+			String prog = "test27";
+			String input = prog + "{print !false; print !true; print !(true | false); print !(true & false);} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;false;false;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test28() throws Exception {
+			String prog = "test28";
+			String input = prog + "{print (true&false)&(false&true);} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;false;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test29() throws Exception {
+			String prog = "test29";
+			String input = prog + "{print (true&false)|(false|true);} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test30() throws Exception {
+			String prog = "test30";
+			String input = prog + "{print (1*2.5)**(3*1);} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;15.625;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test31() throws Exception {
+			String prog = "binaryExpressionLit8";
+			String input = prog + "{print (1*2.5)**(3*1);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;15.625;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test32() throws Exception {
+			String prog = "binaryExpressionLit10";
+			String input = prog + "{print (1*2)**(3*1);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;8;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test33() throws Exception {
+			String prog = "unaryExpressionLit";
+			String input = prog + "{print (2-3);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;-1;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test34() throws Exception {
+			String prog = "unaryExpressionLit2";
+			String input = prog + "{print -(2.5-3);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;0.5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test35() throws Exception {
+			String prog = "unaryExpressionLit3";
+			String input = prog + "{print !(1+1);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;-3;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test36() throws Exception {
+			String prog = "unaryExpressionLit4";
+			String input = prog + "{print !(true&false);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test37() throws Exception {
+			String prog = "sleepExpressionLit";
+			String input = prog + "{sleep 500;} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test38() throws Exception {
+			String prog = "functionExpressionWithArgLit";
+			String input = prog + "{print sin(0.0);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;0.0;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test39() throws Exception {
+			String prog = "functionExpressionWithArgLit2";
+			String input = prog + "{print cos(0.0);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;1.0;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test40() throws Exception {
+			String prog = "functionExpressionWithArgLit3";
+			String input = prog + "{print atan(0.0);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;0.0;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test41() throws Exception {
+			String prog = "functionExpressionWithArgLit4";
+			String input = prog + "{print log(1.0);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;0.0;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test42() throws Exception {
+			String prog = "functionExpressionWithArgLit5";
+			String input = prog + "{print abs(-1.0);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;1.0;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+
+		@Test
+		public void test43() throws Exception {
+			String prog = "functionExpressionWithArgLit6";
+			String input = prog + "{print abs(-1);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;1;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test44() throws Exception {
+			String prog = "functionExpressionWithArgLit7";
+			String input = prog + "{print float(-1.0);} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;-1.0;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test45() throws Exception {
+			String prog = "AssignmentTest";
+			String input = prog + "{int d, a, v; a = 2; d=6; print d;print a; float b, m, n; b = 2.5; m=3.5;n=4.5; print m; print n; print b;} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;6;2;3.5;4.5;2.5;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test46() throws Exception {
+			String prog = "AssignmentTest2";
+			String input = prog + "{char a, b, c; c = 'a'; b ='l';print b;print c;} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;l;a;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test47() throws Exception {
+			String prog = "AssignmentTest3";
+			String input = prog + "{boolean a; a = true;} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		@Test
+		public void test48() throws Exception {
+			String prog = "IfStatementTest";
+			String input = prog + "{int i; i = 0; if (i == 0){i = 1; print i;};} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;1;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test49() throws Exception {
+			String prog = "whileStatementTest";
+			String input = prog + "{int i; i = 0; while(i < 2){print 3; i = i + 1;}; print i;} ";
+			byte[] bytecode = genCode(input);
+
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;3;3;2;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test50() throws Exception {
+			String prog = "test50";
+			String input = prog + "{print 4 > 4 ? 6: 4;} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;4;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test51() throws Exception {
+			String prog = "test51";
+			String input = prog + "{string h, k ,z; h=\"sss\";z= \"qqq\";print h; print z;} ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;sss;qqq;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+
+		@Test
+		public void test52() throws Exception {
+			String prog = "test52";
+			String input = prog + "{string a, b,c, d; b=\"sss\";d= \"qqq\";a= b+d; print a; } ";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;sssqqq;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void test53() throws Exception {
+			String prog = "test53";
+			String input = prog + "{int x; x = 1; int y=2;if ( 2 < 3) {y=3; print y;}; print x;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;3;1;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void test54() throws Exception {
+			String prog = "test52";
+			String input = prog + "{int x,y,z; x = 1;y=2;z=3;int a = 4;print a;print x;print y;print z;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;4;1;2;3;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		@Test
+		public void test55() throws Exception {
+			String prog = "test52";
+			String input = prog + "{int x,y,z; x = 1;y=2;z=3;x=x+y+z;print x;print y;print z;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;6;2;3;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		@Test
+		public void floatBinary() throws Exception {
+			String prog = "test52";
+			String input = prog + "{print 2.1>1.1;print 2.1<11.1; print 2.2!=2.1; print 5.2==5.1; print 2.2>=2.2; print 5.2<=5.2;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;true;true;false;true;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void intBinary() throws Exception {
+			String prog = "test52";
+			String input = prog + "{print 2>1;print 2<1; print 2!=1; print 5==1; print 2>=2; print 5<=5;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;false;true;false;true;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void booleanBinary() throws Exception {
+			String prog = "test52";
+			String input = prog + "{print true>false;print true<false; print true==true; print 5==1; print 2>=2; print 5<=5;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;true;false;true;false;true;true;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+		
+		@Test
+		public void intfunction() throws Exception {
+			String prog = "test52";
+			String input = prog + "{int a; a = int(-3.7); print a; a = int(4); print a;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n"+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;-3;4;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
 }
+
