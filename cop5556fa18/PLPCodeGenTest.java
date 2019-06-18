@@ -154,8 +154,20 @@ public class PLPCodeGenTest {
 			byte[] bytecode = genCode(input);
 			runCode(prog, bytecode);
 			show("Log:\n "+PLPRuntimeLog.globalLog);
-			assertEquals("entering main;a[aaa]4;leaving main;",PLPRuntimeLog.globalLog.toString());
+			assertEquals("entering main;a;a;a;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
+		@Test
+		
+		public void myTest() throws Exception {
+			String prog = "myTest";	
+			String input = prog + "  {int x; x = 0;char c; c='a';print x; print c;}";
+			byte[] bytecode = genCode(input);
+			runCode(prog, bytecode);
+			show("Log:\n "+PLPRuntimeLog.globalLog);
+			assertEquals("entering main;0;a;leaving main;",PLPRuntimeLog.globalLog.toString());
+		}
+	
+		
 		
 		@Test
 		public void test1() throws Exception {
@@ -184,7 +196,7 @@ public class PLPCodeGenTest {
 			byte[] bytecode = genCode(input);
 			runCode(prog, bytecode);
 			show("Log:\n "+PLPRuntimeLog.globalLog);
-			assertEquals("entering main;4;3;2;1;1;leaving main;",PLPRuntimeLog.globalLog.toString());
+			assertEquals("entering main;b;b;b;b;1;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
 		
 		
@@ -428,11 +440,11 @@ public class PLPCodeGenTest {
 		@Test
 		public void testCase1() throws Exception {
 			String prog = "testCase1";
-			String input = prog + "{string a = \"test\"; string b = \" case\" ; print a+b; print b;}";	
+			String input = prog + "{string a = \"test\"; string b = \" case\" ; print a+b; print a;}";	
 			byte[] bytecode = genCode(input);		
 			runCode(prog, bytecode);	
 			show("Log:\n"+PLPRuntimeLog.globalLog);
-			assertEquals("entering main;test case; case;leaving main;",PLPRuntimeLog.globalLog.toString());
+			assertEquals("entering main;test case;test;leaving main;",PLPRuntimeLog.globalLog.toString());
 		}
 		/*while loop*/
 		@Test

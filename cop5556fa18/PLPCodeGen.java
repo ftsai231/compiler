@@ -31,7 +31,7 @@ import cop5556fa18.PLPTypes.Type;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;;
+import org.objectweb.asm.MethodVisitor;
 
 public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 
@@ -168,7 +168,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		
 		// add label before first instruction
 		Label mainStart = new Label();
-		mv.visitLabel(mainStart);   //no diff
+		mv.visitLabel(mainStart);   
 
 		PLPCodeGenUtils.genLog(DEVEL, mv, "entering main");
 
@@ -182,7 +182,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 
 		// adds label at end of code
 		Label mainEnd = new Label();
-		mv.visitLabel(mainEnd);  //no diff
+		mv.visitLabel(mainEnd);
 		mv.visitLocalVariable("args", "[Ljava/lang/String;", null, mainStart, mainEnd, 0);
 		
 		// Because we use ClassWriter.COMPUTE_FRAMES as a parameter in the
@@ -203,6 +203,7 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		// generate classfile as byte array and return
 		return cw.toByteArray();			
 	}
+	
 
 	@Override
 	public Object visitVariableDeclaration(VariableDeclaration declaration, Object arg) throws Exception {
@@ -215,7 +216,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 				declaration.expression.visit(this, arg);
 				mv.visitVarInsn(ISTORE, declaration.getSlot());
 				
-	
 			} else if (declaration.getType().equals(Type.FLOAT)) {
 				declaration.SetJVMType("F");
 				System.out.println("declaration F");
@@ -255,7 +255,6 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 			declaration.setSlot(name, current_slot);
 			current_slot++;
 		}
-		
 		
 		if (declaration.getType().equals(Type.INTEGER)) {
 			declaration.SetJVMType("I");
@@ -660,14 +659,14 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 				expressionBinary.rightExpression.visit(this, null);
 				Label l1 = new Label();
 				mv.visitLabel(l1);
-				mv.visitVarInsn(ASTORE, 2);
 				mv.visitVarInsn(ASTORE, 1);
+				mv.visitVarInsn(ASTORE, 2);
 				mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
 				mv.visitInsn(DUP);
-				mv.visitVarInsn(ALOAD, 1);
+				mv.visitVarInsn(ALOAD, 2);
 //				mv.visitMethodInsn(INVOKESTATIC, "java/lang/String", "valueOf", "(Ljava/lang/Object;)Ljava/lang/String;", false);
 				mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", false);
-				mv.visitVarInsn(ALOAD, 2);
+				mv.visitVarInsn(ALOAD, 1);
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
 				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
 
@@ -948,51 +947,52 @@ public class PLPCodeGen implements PLPASTVisitor, Opcodes {
 		Type t = (Type) statementAssign.expression.visit(this, null);
 		Type tlhs = (Type) statementAssign.lhs.visit(this, null);
 		
+		//this part of code is redundant, and I suffer from this for a long time!
+		//the mv.visitInsn has already done in other parts!
 		
-		if (t.equals(Type.INTEGER)) {
-			if (statementAssign.expression instanceof ExpressionIntegerLiteral) {
-				if (statementAssign.lhs.dec != null) {
-					mv.visitInsn(statementAssign.lhs.dec.getSlot());
-				} else {
-					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
-				}
-			}
-		} else if (t.equals(Type.FLOAT)) {
-			if (statementAssign.expression instanceof ExpressionFloatLiteral) {
-				if (statementAssign.lhs.dec != null) {
-					mv.visitInsn(statementAssign.lhs.dec.getSlot());
-				} else {
-					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
-				}
-			}
-
-		} else if (t.equals(Type.BOOLEAN)) {
-			if (statementAssign.expression instanceof ExpressionBooleanLiteral) {
-				if (statementAssign.lhs.dec != null) {
-					mv.visitInsn(statementAssign.lhs.dec.getSlot());
-				} else {
-					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
-				}
-			}
-		} else if (t.equals(Type.CHAR)) {
-			if (statementAssign.expression instanceof ExpressionCharLiteral) {
-				if (statementAssign.lhs.dec != null) {
-					mv.visitInsn(statementAssign.lhs.dec.getSlot());
-				} else {
-					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
-				}
-			}
-
-		} else if (t.equals(Type.STRING)) {
-			if (statementAssign.expression instanceof ExpressionStringLiteral) {
-				if (statementAssign.lhs.dec != null) {
-					mv.visitInsn(statementAssign.lhs.dec.getSlot());
-				} else {
-					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
-				}
-			}
-			
-		}
+//		if (t.equals(Type.INTEGER)) {
+//			if (statementAssign.expression instanceof ExpressionIntegerLiteral) {
+//				if (statementAssign.lhs.dec != null) {
+//					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+//				} else {
+//					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+//				}
+//			}
+//		} else if (t.equals(Type.FLOAT)) {
+//			if (statementAssign.expression instanceof ExpressionFloatLiteral) {
+//				if (statementAssign.lhs.dec != null) {
+//					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+//				} else {
+//					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+//				}
+//			}
+//
+//		} else if (t.equals(Type.BOOLEAN)) {
+//			if (statementAssign.expression instanceof ExpressionBooleanLiteral) {
+//				if (statementAssign.lhs.dec != null) {
+//					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+//				} else {
+//					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+//				}
+//			}
+//		} else if (t.equals(Type.CHAR)) {
+//			if (statementAssign.expression instanceof ExpressionCharLiteral) {
+//				if (statementAssign.lhs.dec != null) {
+//					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+//				} else {
+//					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+//				}
+//			}
+//
+//		} else if (t.equals(Type.STRING)) {
+//			if (statementAssign.expression instanceof ExpressionStringLiteral) {
+//				if (statementAssign.lhs.dec != null) {
+//					mv.visitInsn(statementAssign.lhs.dec.getSlot());
+//				} else {
+//					mv.visitInsn(statementAssign.lhs.decc.getSlot(statementAssign.lhs.identifier));
+//				}
+//			}
+//		}
 		return null;
 	}
 
